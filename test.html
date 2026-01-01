@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dan's AI - Voice Cloning & Pitch Shifter</title>
+    <style>
+        :root {
+            --neon-pink: #ff00aa;
+            --deep-purple: #3a0ca3;
+            --cyber-blue: #00eeff;
+            --void-black: #050510;
+            --matrix-green: #00ff80;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--void-black);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 170, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 238, 255, 0.05) 0%, transparent 20%);
+        }
+        
+        .cyber-border {
+            position: relative;
+            border: 2px solid transparent;
+            border-image: linear-gradient(45deg, var(--neon-pink), var(--cyber-blue)) 1;
+            background: rgba(10, 10, 30, 0.7);
+        }
+        
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--cyber-blue);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(to right, var(--neon-pink), var(--cyber-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255, 0, 170, 0.3);
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            color: var(--cyber-blue);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .ceo-tag {
+            position: absolute;
+            right: 2rem;
+            top: 1rem;
+            color: var(--matrix-green);
+            font-size: 0.9rem;
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .control-panel {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .preview-panel {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        h2 {
+            color: var(--cyber-blue);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            background: var(--deep-purple);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--cyber-blue);
+        }
+        
+        .tab.active {
+            background: var(--neon-pink);
+            color: var(--void-black);
+            font-weight: bold;
+        }
+        
+        .tab:hover:not(.active) {
+            background: var(--cyber-blue);
+            color: var(--void-black);
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--cyber-blue);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .file-upload:hover {
+            background: rgba(0, 238, 255, 0.1);
+        }
+        
+        .slider-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: var(--cyber-blue);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, var(--neon-pink), var(--cyber-blue));
+            outline: none;
+            border-radius: 5px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--neon-pink);
+        }
+        
+        .voice-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .preset {
+            padding: 0.5rem;
+            background: var(--deep-purple);
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--cyber-blue);
+        }
+        
+        .preset:hover {
+            background: var(--cyber-blue);
+            color: var(--void-black);
+        }
+        
+        .preset.selected {
+            background: var(--neon-pink);
+            color: var(--void-black);
+            font-weight: bold;
+        }
+        
+        button {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(to right, var(--neon-pink), var(--cyber-blue));
+            color: var(--void-black);
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 238, 255, 0.3);
+        }
+        
+        .preview-area {
+            height: 300px;
+            background-color: rgba(10, 10, 30, 0.7);
+            border: 1px solid var(--cyber-blue);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .waveform {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to bottom, rgba(0, 238, 255, 0.1), rgba(255, 0, 170, 0.1));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .waveform::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--cyber-blue);
+            opacity: 0.5;
+        }
+        
+        .waveform-line {
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            background: var(--neon-pink);
+            animation: wave 1s infinite ease-in-out;
+        }
+        
+        @keyframes wave {
+            0%, 100% { height: 50%; }
+            50% { height: 80%; }
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--deep-purple);
+            color: var(--cyber-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--cyber-blue);
+        }
+        
+        .control-btn:hover {
+            background: var(--cyber-blue);
+            color: var(--void-black);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--cyber-blue);
+            margin-top: 2rem;
+            color: var(--cyber-blue);
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .voice-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="ceo-tag">Created by Daniel Adyebo (CEO)</div>
+        <h1>Dan's AI</h1>
+        <div class="subtitle">Professional Voice Cloning & Pitch Shifting</div>
+    </header>
+    
+    <div class="main-container">
+        <div class="control-panel cyber-border">
+            <h2>Voice Manipulation</h2>
+            <div class="tabs">
+                <div class="tab active">Audio</div>
+                <div class="tab">Video</div>
+                <div class="tab">Text-to-Speech</div>
+            </div>
+            
+            <div class="file-upload" id="fileUpload">
+                <p>Drag & drop your file here or click to browse</p>
+                <p>(MP3, WAV, MP4, AVI up to 100MB)</p>
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Pitch Shift:</span>
+                    <span id="pitchValue">0 semitones</span>
+                </div>
+                <input type="range" id="pitchSlider" min="-12" max="12" value="0" step="1">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Speed:</span>
+                    <span id="speedValue">1.0x</span>
+                </div>
+                <input type="range" id="speedSlider" min="0.5" max="2" value="1" step="0.1">
+            </div>
+            
+            <h3>Voice Presets</h3>
+            <div class="voice-presets">
+                <div class="preset">Deep Male</div>
+                <div class="preset">High Female</div>
+                <div class="preset selected">Default</div>
+                <div class="preset">Robot</div>
+                <div class="preset">Monster</div>
+                <div class="preset">Chipmunk</div>
+            </div>
+            
+            <div>
+                <label for="voiceClone">Clone Voice From Sample:</label>
+                <input type="file" id="voiceClone" accept="audio/*" style="display: none;">
+                <button type="button" onclick="document.getElementById('voiceClone').click()">Upload Voice Sample</button>
+            </div>
+            
+            <button id="processBtn">Process Audio</button>
+        </div>
+        
+        <div class="preview-panel cyber-border">
+            <h2>Preview</h2>
+            <div class="preview-area">
+                <div class="waveform" id="waveform">
+                    <!-- Waveform lines will be generated by JS -->
+                </div>
+                <div class="controls">
+                    <div class="control-btn" id="playBtn">▶</div>
+                    <div class="control-btn" id="pauseBtn">❚❚</div>
+                    <div class="control-btn" id="stopBtn">■</div>
+                </div>
+            </div>
+            
+            <div>
+                <h3>Download Options</h3>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button disabled id="mp3Btn">MP3</button>
+                    <button disabled id="wavBtn">WAV</button>
+                    <button disabled id="mp4Btn">MP4</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem;">
+                <h3>Advanced Settings</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Reverb:</span>
+                        <span id="reverbValue">0%</span>
+                    </div>
+                    <input type="range" id="reverbSlider" min="0" max="100" value="0" step="1">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Distortion:</span>
+                        <span id="distortionValue">0%</span>
+                    </div>
+                    <input type="range" id="distortionSlider" min="0" max="100" value="0" step="1">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Dan's AI - Professional Audio Manipulation Tools © 2023</p>
+        <p>Free to use for personal and commercial projects</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generate random waveform lines
+            const waveform = document.getElementById('waveform');
+            for (let i = 0; i < 150; i++) {
+                const line = document.createElement('div');
+                line.className = 'waveform-line';
+                line.style.left = `${i * 5}px`;
+                line.style.height = `${30 + Math.random() * 70}%`;
+                line.style.animationDelay = `${Math.random() * 1}s`;
+                waveform.appendChild(line);
+            }
+            
+            // Update slider values
+            document.getElementById('pitchSlider').addEventListener('input', function() {
+                document.getElementById('pitchValue').textContent = `${this.value} semitones`;
+            });
+            
+            document.getElementById('speedSlider').addEventListener('input', function() {
+                document.getElementById('speedValue').textContent = `${this.value}x`;
+            });
+            
+            document.getElementById('reverbSlider').addEventListener('input', function() {
+                document.getElementById('reverbValue').textContent = `${this.value}%`;
+            });
+            
+            document.getElementById('distortionSlider').addEventListener('input', function() {
+                document.getElementById('distortionValue').textContent = `${this.value}%`;
+            });
+            
+            // Tabs functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Voice presets functionality
+            const presets = document.querySelectorAll('.preset');
+            presets.forEach(preset => {
+                preset.addEventListener('click', function() {
+                    presets.forEach(p => p.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    // Apply preset values
+                    const presetText = this.textContent.trim();
+                    switch(presetText) {
+                        case 'Deep Male':
+                            document.getElementById('pitchSlider').value = -4;
+                            document.getElementById('pitchValue').textContent = '-4 semitones';
+                            break;
+                        case 'High Female':
+                            document.getElementById('pitchSlider').value = 4;
+                            document.getElementById('pitchValue').textContent = '4 semitones';
+                            break;
+                        case 'Robot':
+                            document.getElementById('distortionSlider').value = 70;
+                            document.getElementById('distortionValue').textContent = '70%';
+                            document.getElementById('reverbSlider').value = 30;
+                            document.getElementById('reverbValue').textContent = '30%';
+                            break;
+                        case 'Monster':
+                            document.getElementById('pitchSlider').value = -6;
+                            document.getElementById('pitchValue').textContent = '-6 semitones';
+                            document.getElementById('distortionSlider').value = 40;
+                            document.getElementById('distortionValue').textContent = '40%';
+                            break;
+                        case 'Chipmunk':
+                            document.getElementById('pitchSlider').value = 12;
+                            document.getElementById('pitchValue').textContent = '12 semitones';
+                            document.getElementById('speedSlider').value = 1.5;
+                            document.getElementById('speedValue').textContent = '1.5x';
+                            break;
+                        default: // Default
+                            document.getElementById('pitchSlider').value = 0;
+                            document.getElementById('pitchValue').textContent = '0 semitones';
+                            document.getElementById('speedSlider').value = 1.0;
+                            document.getElementById('speedValue').textContent = '1.0x';
+                            document.getElementById('reverbSlider').value = 0;
+                            document.getElementById('reverbValue').textContent = '0%';
+                            document.getElementById('distortionSlider').value = 0;
+                            document.getElementById('distortionValue').textContent = '0%';
+                    }
+                });
+            });
+            
+            // File upload hover effect
+            const fileUpload = document.getElementById('fileUpload');
+            fileUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.background = 'rgba(0, 238, 255, 0.2)';
+            });
+            
+            fileUpload.addEventListener('dragleave', function() {
+                this.style.background = '';
+            });
+            
+            fileUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.background = '';
+                // Handle file drop here
+                console.log('Files dropped:', e.dataTransfer.files);
+            });
+            
+            fileUpload.addEventListener('click', function() {
+                document.getElementById('voiceClone').click();
+            });
+            
+            // Process button click
+            document.getElementById('processBtn').addEventListener('click', function() {
+                alert('Processing your audio with current settings...');
+                // In a real app, this would process the audio
+                document.getElementById('mp3Btn').disabled = false;
+                document.getElementById('wavBtn').disabled = false;
+                document.getElementById('mp4Btn').disabled = false;
+            });
+            
+            // Control buttons
+            document.getElementById('playBtn').addEventListener('click', function() {
+                console.log('Play');
+            });
+            
+            document.getElementById('pauseBtn').addEventListener('click', function() {
+                console.log('Pause');
+            });
+            
+            document.getElementById('stopBtn').addEventListener('click', function() {
+                console.log('Stop');
+            });
+        });
+    </script>
+</body>
+</html>
+
